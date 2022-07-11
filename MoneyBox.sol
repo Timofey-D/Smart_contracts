@@ -1,32 +1,39 @@
-//SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 
 contract MoneyBox
 {
 
-    mapping (address => uint256) private balance;
+    mapping (address => uint256) private balances;
 
-    function getBalance() public view returns(uint256)
-    {
-        return balance[msg.sender];
-    }
 
     function topUpBalance() public payable
     {
-        balance[msg.sender] += msg.value;
+        balances[msg.sender] += msg.value;
     }
 
-    function withdrawAmount() public payable
+    function capitalizationOfContract() external view returns(uint)
     {
-        if (balance[msg.sender] - msg.value >= 0)
-        {
-            balance[msg.sender] -= msg.value;
-            payable(msg.sender).transfer(msg.value);
-        }
-        else
-        {
-            revert("Amount is larger than the balance!");
-        }
+        return address(this).balance;
     }
+
+    function showBalance() public view returns(uint256)
+    {
+        return balances[msg.sender];
+    }
+
+    modifier amountOfMoney(uint _amount)
+    {
+        require(balances[msg.sender] - _amount >= 0, "Insufficient funds");
+        _;
+    }
+
+    function withdrawFunds(uint _amount) public payable amountOfMoney(_amount)
+    {
+        balances[msg.sender] -= _amount;
+        payable(msg.sender).transfer(_amount);
+    }
+
 }
+
